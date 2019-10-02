@@ -1,0 +1,69 @@
+// Check your desktop machine for the old source code
+//  it has the code to print t digit numbers with leading zeros
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#define BME_SCK 13
+#define BME_MISO 12
+#define BME_MOSI 11
+#define BME_CS 10
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+Adafruit_BME280 bme; // I2C
+
+unsigned long delayTime = 0;                // Actual vlaue set later
+unsigned long lastm = millis();             // Time since startup - do early
+float T, P, H;
+
+setup() {
+    // Put the code to initialize the BME before this next bit
+    // Configure sensor parameters
+    bme.setSampling(Adafruit_BME280::MODE_FORCED,   // sleep until required
+                    Adafruit_BME280::SAMPLING_X1,   // temperature
+                    Adafruit_BME280::SAMPLING_X1,   // pressure
+                    Adafruit_BME280::SAMPLING_X1,   // humidity
+                    Adafruit_BME280::FILTER_OFF );
+	delayTime = 60000;                              // minimum ms between samples
+	
+	// ... Do the stuff to show the splash screen and prepare the display
+	// ... initialize the sensors and RTC, etc
+	// ... The last things to do are:
+	// do a delay while the user reads the startup screen
+	// clear the display
+	// draw the static text (drawFrame)
+	takeReadings();
+	showTemp(T);
+	showPres(P);
+	showHum(H);
+}					
+
+
+loop() {
+    // Show the date and time
+	showDate();
+	showTime();
+    
+    if ((millis() - lastm) >= delayTime) {   // Take readings every minute
+	   lastm = millis;
+
+	   takeReadings();
+	
+	   showTemp(T);
+	   showPres(P);
+	   showHum(H);
+	}
+	
+	
+}
+
+void takeReadings() {
+       // Only needed in forced mode! In normal mode, you can remove the next line.
+       bme.takeForcedMeasurement(); // has no effect in normal mode
+	
+	   T = bme.readTemperature();
+	   P = bme.readPressure();
+	   H = bme.readHumidity();
+}
